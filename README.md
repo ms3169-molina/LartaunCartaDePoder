@@ -50,9 +50,7 @@ The document is transcribed and translated in Appendix B of:
 
 The document is unambiguous: folio 3, lines 24–27 read *"veynte e quatro 
 días del mes de setienbre de mill e quinientos e ochenta e dos años"* — 
-September 24, **1582**. The document has occasionally been cited as 1583 
-in secondary literature, likely due to confusion with the opening year of 
-the Third Council of Lima. The manuscript admits no such reading.
+September 24, **1582**. 
 
 ## Images Provided by Author
 
