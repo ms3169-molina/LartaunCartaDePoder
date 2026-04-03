@@ -1,0 +1,869 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Carta de Poder — Lartaún to Molina, 1582</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #1a1a1a;
+      --surface: #242424;
+      --surface2: #2e2e2e;
+      --border: #3a3a3a;
+      --accent: #c8a96e;
+      --accent2: #a07840;
+      --text: #e8e0d0;
+      --text-muted: #888;
+      --text-dim: #666;
+      --radius: 6px;
+    }
+
+    body {
+      font-family: 'Georgia', serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* HEADER */
+    header {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 1.2rem 2rem;
+      text-align: center;
+    }
+    header h1 {
+      font-size: 1.25rem;
+      font-weight: normal;
+      color: var(--accent);
+      letter-spacing: 0.02em;
+      margin-bottom: 0.3rem;
+    }
+    header h2 {
+      font-size: 0.85rem;
+      font-weight: normal;
+      color: var(--text-muted);
+      font-style: italic;
+    }
+    header .meta {
+      margin-top: 0.5rem;
+      font-size: 0.75rem;
+      color: var(--text-dim);
+    }
+    header .meta a { color: var(--accent2); text-decoration: none; }
+    header .meta a:hover { text-decoration: underline; }
+
+    /* MAIN LAYOUT */
+    main {
+      display: flex;
+      flex: 1;
+      gap: 0;
+      height: calc(100vh - 130px);
+      min-height: 600px;
+    }
+
+    /* LEFT PANEL — viewer */
+    .viewer-panel {
+      flex: 0 0 52%;
+      display: flex;
+      flex-direction: column;
+      border-right: 1px solid var(--border);
+      background: var(--bg);
+    }
+
+    /* CONTROLS */
+    .controls {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 0.6rem 1rem;
+      display: flex;
+      align-items: center;
+      gap: 0.8rem;
+      flex-wrap: wrap;
+    }
+    .nav-group {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .nav-btn {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 0.35rem 0.75rem;
+      border-radius: var(--radius);
+      cursor: pointer;
+      font-size: 0.9rem;
+      transition: background 0.15s;
+    }
+    .nav-btn:hover { background: var(--accent2); color: #fff; }
+    .folio-label {
+      font-size: 0.8rem;
+      color: var(--accent);
+      min-width: 100px;
+      text-align: center;
+    }
+
+    .sep { width: 1px; height: 20px; background: var(--border); }
+
+    .slider-group {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      font-size: 0.72rem;
+      color: var(--text-muted);
+    }
+    .slider-group label { white-space: nowrap; }
+    input[type=range] {
+      width: 70px;
+      accent-color: var(--accent);
+    }
+
+    .filter-group {
+      display: flex;
+      gap: 0.3rem;
+    }
+    .filter-btn {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+      padding: 0.2rem 0.55rem;
+      border-radius: var(--radius);
+      font-size: 0.7rem;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .filter-btn:hover, .filter-btn.active {
+      background: var(--accent);
+      color: #1a1a1a;
+      border-color: var(--accent);
+    }
+
+    /* IMAGE AREA */
+    .image-area {
+      flex: 1;
+      overflow: hidden;
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #111;
+      cursor: zoom-in;
+    }
+    .image-area.zoomed { cursor: zoom-out; overflow: auto; }
+    .ms-image {
+      max-width: 100%;
+      max-height: 100%;
+      object-fit: contain;
+      transition: filter 0.2s;
+      user-select: none;
+    }
+    .image-area.zoomed .ms-image {
+      max-width: none;
+      max-height: none;
+      width: 150%;
+    }
+
+    /* FOLIO TABS */
+    .folio-tabs {
+      display: flex;
+      background: var(--surface);
+      border-top: 1px solid var(--border);
+      padding: 0.4rem 0.8rem;
+      gap: 0.4rem;
+    }
+    .folio-tab {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+      padding: 0.3rem 0.8rem;
+      border-radius: var(--radius);
+      font-size: 0.75rem;
+      cursor: pointer;
+      transition: all 0.15s;
+      font-family: 'Georgia', serif;
+    }
+    .folio-tab:hover { border-color: var(--accent2); color: var(--text); }
+    .folio-tab.active {
+      background: var(--accent);
+      color: #1a1a1a;
+      border-color: var(--accent);
+      font-weight: bold;
+    }
+
+    /* RIGHT PANEL — transcription + translation */
+    .text-panel {
+      flex: 0 0 48%;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+    .text-header {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 0.6rem 1rem;
+      display: flex;
+      gap: 0.5rem;
+      align-items: center;
+    }
+    .text-tab {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+      padding: 0.25rem 0.7rem;
+      border-radius: var(--radius);
+      font-size: 0.75rem;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .text-tab.active {
+      background: var(--accent);
+      color: #1a1a1a;
+      border-color: var(--accent);
+    }
+    .text-tab:hover:not(.active) { border-color: var(--accent2); color: var(--text); }
+
+    .text-body {
+      flex: 1;
+      overflow-y: auto;
+      padding: 1.2rem 1.4rem;
+      font-size: 0.82rem;
+      line-height: 1.75;
+    }
+    .text-body::-webkit-scrollbar { width: 6px; }
+    .text-body::-webkit-scrollbar-track { background: var(--bg); }
+    .text-body::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+    .folio-section { display: none; }
+    .folio-section.visible { display: block; }
+
+    .line {
+      display: grid;
+      grid-template-columns: 2rem 1fr;
+      gap: 0.5rem;
+      margin-bottom: 0.15rem;
+      padding: 0.1rem 0;
+    }
+    .line:hover { background: rgba(200,169,110,0.06); border-radius: 3px; }
+    .line-num {
+      color: var(--accent2);
+      font-size: 0.7rem;
+      font-family: 'Courier New', monospace;
+      padding-top: 0.1rem;
+      text-align: right;
+      user-select: none;
+    }
+    .line-text { color: var(--text); }
+    .line-text.es { font-style: italic; color: #d4c8a8; }
+    .line-text.en { color: #b8d4b8; }
+
+    .sig-block {
+      margin-top: 1rem;
+      padding-top: 1rem;
+      border-top: 1px solid var(--border);
+      font-size: 0.8rem;
+    }
+    .sig-line { margin-bottom: 0.4rem; color: var(--text-muted); }
+    .sig-line span { color: var(--text); font-style: italic; }
+
+    .folio-heading {
+      font-size: 0.7rem;
+      color: var(--accent);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      margin-bottom: 0.8rem;
+      padding-bottom: 0.4rem;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .editorial-note {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 0.8rem 1rem;
+      margin-bottom: 1rem;
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      line-height: 1.6;
+    }
+    .editorial-note strong { color: var(--accent); }
+
+    /* FOOTER */
+    footer {
+      background: var(--surface);
+      border-top: 1px solid var(--border);
+      padding: 0.6rem 2rem;
+      text-align: center;
+      font-size: 0.7rem;
+      color: var(--text-dim);
+    }
+    footer a { color: var(--accent2); text-decoration: none; }
+    footer a:hover { text-decoration: underline; }
+
+    @media (max-width: 768px) {
+      main { flex-direction: column; height: auto; }
+      .viewer-panel, .text-panel { flex: none; width: 100%; }
+      .viewer-panel { height: 50vh; }
+      .text-panel { height: 50vh; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>Carta de Poder — Sebastián de Lartaún to Cristóbal de Molina</h1>
+  <h2>Archivo General de la Nación, Perú &nbsp;·&nbsp; Protocolos Notariales s. XVI, 43, ff. 182–183 &nbsp;·&nbsp; September 24, 1582</h2>
+  <p class="meta">
+    Digital companion to: Liliana Socorro Naranjo, <em>The Account of the Fables and Rites of the Incas</em> (University of Alabama Press, forthcoming) &nbsp;·&nbsp;
+    <a href="https://ms3169-molina.github.io/Ms3169MolinaPaleography/">← MS 3169 Viewer</a>
+  </p>
+</header>
+
+<main>
+  <!-- LEFT: IMAGE VIEWER -->
+  <div class="viewer-panel">
+    <div class="controls">
+      <div class="nav-group">
+        <button class="nav-btn" id="prevBtn" onclick="navigate(-1)">←</button>
+        <span class="folio-label" id="folioLabel">f. 182r</span>
+        <button class="nav-btn" id="nextBtn" onclick="navigate(1)">→</button>
+      </div>
+      <div class="sep"></div>
+      <div class="slider-group">
+        <label>Contrast</label>
+        <input type="range" id="contrast" min="50" max="200" value="100" oninput="applyFilters()">
+      </div>
+      <div class="slider-group">
+        <label>Brightness</label>
+        <input type="range" id="brightness" min="50" max="200" value="100" oninput="applyFilters()">
+      </div>
+      <div class="slider-group">
+        <label>Sharpen</label>
+        <input type="range" id="sharpen" min="0" max="5" value="0" step="0.5" oninput="applyFilters()">
+      </div>
+      <div class="sep"></div>
+      <div class="filter-group">
+        <button class="filter-btn active" onclick="setPreset('original',this)">Original</button>
+        <button class="filter-btn" onclick="setPreset('warm',this)">Warm</button>
+        <button class="filter-btn" onclick="setPreset('crisp',this)">Crisp</button>
+        <button class="filter-btn" onclick="setPreset('gray',this)">Grayscale</button>
+      </div>
+    </div>
+
+    <div class="image-area" id="imageArea" onclick="toggleZoom()">
+      <img class="ms-image" id="msImage" src="" alt="Manuscript folio" />
+    </div>
+
+    <div class="folio-tabs">
+      <button class="folio-tab active" onclick="goTo(0,this)">f. 182r</button>
+      <button class="folio-tab" onclick="goTo(1,this)">f. 182v</button>
+      <button class="folio-tab" onclick="goTo(2,this)">f. 183r</button>
+      <button class="folio-tab" onclick="goTo(3,this)">About</button>
+    </div>
+  </div>
+
+  <!-- RIGHT: TEXT PANEL -->
+  <div class="text-panel">
+    <div class="text-header">
+      <button class="text-tab active" id="tabES" onclick="switchLang('es')">Transcription (Spanish)</button>
+      <button class="text-tab" id="tabEN" onclick="switchLang('en')">Translation (English)</button>
+      <button class="text-tab" id="tabNote" onclick="switchLang('note')">Editorial Note</button>
+    </div>
+    <div class="text-body" id="textBody">
+      <!-- content injected by JS -->
+    </div>
+  </div>
+</main>
+
+<footer>
+  Images provided by the author from a formal reproduction request to the Archivo General de la Nación, Perú. &nbsp;·&nbsp;
+  Transcription and translation: Liliana Socorro Naranjo. &nbsp;·&nbsp;
+  <a href="https://ms3169-molina.github.io/Ms3169MolinaPaleography/">MS 3169 Paleography Viewer</a>
+</footer>
+
+<script>
+// ─── DATA ───────────────────────────────────────────────────────────────────
+
+const folios = [
+  { label: 'f. 182r', file: '182.JPG' },
+  { label: 'f. 182v', file: '182V.jpg' },
+  { label: 'f. 183r', file: '183.jpg' },
+  { label: 'about',   file: null },
+];
+
+const data = {
+  es: [
+    // FOLIO 1 (182r)
+    {
+      heading: 'Folio 1 — 182r',
+      lines: [
+        [1,  'Sepan quantos esta carta vieren'],
+        [2,  'como yo, don Sevastián de Lartaun'],
+        [3,  'presvítero ~~ y obispo de la çibdad del Cusco'],
+        [4,  'deste rreyno del Pirú, por la misera-'],
+        [5,  'çión divina, residente a el presente'],
+        [6,  'en esta corte y çibdad de los rreyes o-'],
+        [7,  'torgo e conosco por esta presente'],
+        [8,  'carta que doy e otorgo todo mi poder'],
+        [9,  'cunplido, libre e llenero e bastante,'],
+        [10, 'quanto de derecho se requiere e más'],
+        [11, 'puede e deue ualer, a los señores'],
+        [12, 'xpoval [Christóval] de Molina e Françisco Ca-'],
+        [13, 'rrasco, clérigos presvíteros, Residentes'],
+        [14, 'en esta dicha çibdad e a cada vno'],
+        [15, 'e qualquier dellos por sí in solidum'],
+        [16, 'y con que lo quel vno comensare'],
+        [17, 'lo pueda el otro feneser e acabar'],
+        [18, 'generalmente para en todos'],
+        [19, 'mis pleitos e causas e negoçios'],
+        [20, 'çeviles e criminales, eclesiás-'],
+        [21, 'ticos e seglares, movidos e por'],
+        [22, 'mover, que yo tengo en esta çibdad'],
+        [23, 'y rreino, y espero auer e tener'],
+        [24, 'con qualesquier personas, de qual-'],
+        [25, 'quier estado e condiçión que sean,'],
+        [26, 'e las tales contra mí o mis bienes,'],
+        [27, 'en qualquier manera e por qual-'],
+        [28, 'quier causa e rrasón que sea,'],
+        [29, 'demandando e defendiendo, y en'],
+        [30, 'rrasón dellos, e de otras quales-'],
+        [31, 'quier cosas e casos que me conven-'],
+        [32, 'gan y sean nesesarias, puedan'],
+        [33, 'paresçer e parescan ante los'],
+        [34, 'señores del Santo Conçilio'],
+        [35, 'que se hase enesta çibdad e corte,'],
+        [36, 'y ante su magestad rreal y ante los señores'],
+        [37, 'de su rreal audiençia, alcaldes de'],
+        [38, 'corte e ante otras e quales justicias'],
+        [39, 'e juezes eclesiásticos e seglares que de'],
+        [40, 'los dichos mis pleytos e causas pue-'],
+        [41, 'dan e devan conoser, ansí ante las'],
+        [42, 'desta çibdad como ante las demás'],
+      ]
+    },
+    // FOLIO 2 (182v)
+    {
+      heading: 'Folio 2 — 182v',
+      lines: [
+        [1,  'de los rreynos y señoríos de su magestad'],
+        [2,  'e antellos e qualquier dellos puedan'],
+        [3,  'pedir e demandar, rresponder negar'],
+        [4,  'e conoser e rrequerir, enplasar e pro-'],
+        [5,  'testar, querellar, acusar, convenir'],
+        [6,  'e reconvenir testimonio o testimonios,'],
+        [7,  'e faser execuçiones, prisiones, ventas'],
+        [8,  'e rremates de bienes, y tomar la'],
+        [9,  'posesión dellos e jurar y qualesquier'],
+        [10, 'juramentos de calunia e desisorio'],
+        [11, 'disiendo uerdad e pedir que los hagan las'],
+        [12, 'otras partes contrarias poniendo'],
+        [13, 'para ellos artículos e posesiones, e'],
+        [14, 'pedir ser resçebido a prueua y términos'],
+        [15, 'hordinarios e ultramarinos e otros que'],
+        [16, 'me convengan, e contradesir los pedidos'],
+        [17, 'de en contrario e presentar testigos'],
+        [18, 'e provanças y escrituras e petiçiones'],
+        [19, 'y testimonios, sacándolos de poder de quien'],
+        [20, 'estuvieren, y lo abonar, tachar e con-'],
+        [21, 'tradesir lo de en contrario, ansí en dichos'],
+        [22, 'fechos como en personas, e pedir publicación'],
+        [23, 'dellos e concluir [tachado], Recusar jueses'],
+        [24, 'y escriuanos Relatores, e otros que con-'],
+        [25, 'vengan, e se aparten dellas siendo'],
+        [26, 'necesario. E concluir e serrar rrasones,'],
+        [27, 'e pedir e oír sentençia o senten-'],
+        [28, 'çias ansí interlocutorias como difinitivas,'],
+        [29, 'e consentir las que fueren en mi'],
+        [30, 'fauor, e las de en contrario apelar'],
+        [31, 'e suplicar para allá e donde a mi derecho'],
+        [32, 'e justicia convenga y lo seguía en todos'],
+        [33, 'grados e instançias, e puedan sacar'],
+        [34, 'e pedir qualesquier provisiones'],
+        [35, 'mandamientos, cartas e sensuras'],
+        [36, 'y las demás que me convengan,'],
+        [37, 'y las mandar intimar e notificar'],
+        [38, 'a las partes contrarias contra quien'],
+        [39, 'se dieren, e las por ellos pedidas con-'],
+        [40, 'tradesir, y en rrasón de todo ello,'],
+        [41, 'e de todo lo demás contenido'],
+        [42, 'en este poder y a ello anexo e con-'],
+        [43, 'serniente puedan hazer e hagan'],
+        [44, 'todos los demás autos e diligen-'],
+        [45, 'çias, judiçiales y estrajudiçiales,'],
+      ]
+    },
+    // FOLIO 3 (183r)
+    {
+      heading: 'Folio 3 — 183r',
+      lines: [
+        [1,  'que sean nesesarios, e yo haría e'],
+        [2,  'haser podría siendo presente, avnque'],
+        [3,  'aquí no vayan espeçificados, que'],
+        [4,  'para todo ello les doy el dicho mi poder'],
+        [5,  'con todas sus insidençias'],
+        [6,  'e dependençias, anexidades'],
+        [7,  'e conexidades e con libre e general'],
+        [8,  'administración, y con facultad'],
+        [9,  'que lo puedan sostituir'],
+        [10, 'en un procurador, e dos e'],
+        [11, 'más, e los rebocar e po-'],
+        [12, 'ner otros de nueuo,'],
+        [13, 'todas las veses que qui-'],
+        [14, 'sieren, a los quales y a e-'],
+        [15, 'llos relievo según'],
+        [16, 'forma de derecho, e so la'],
+        [17, 'cláusula dél. En testimonio'],
+        [18, 'de lo qual lo otorgué ante'],
+        [19, 'el escriuano de su magestad e testigos'],
+        [20, 'de yuso escritos y para lo'],
+        [21, 'auer todo por firme obligo'],
+        [22, 'mis bienes espirituales e'],
+        [23, 'temporales, avidos e por aver.'],
+        [24, 'Ques fecho en la çibdad de los rreyes del'],
+        [25, 'Pirú, a veynte e quatro días del mes'],
+        [26, 'de setienbre de mill e quinientos e ochen-'],
+        [27, 'ta e dos años, y su señoría como otorgante'],
+        [28, 'lo firmó, a quien doy fee que conosco,'],
+        [29, 'siendo presentes por testigos Pero'],
+        [30, 'López y Pero de Góngora e Pero Gonsales de'],
+        [31, 'Herrera. Registrado en este año, día, mes. Va enmendado: ecle-'],
+        [32, 'siástico, bala; tachado: concluir, no vala'],
+      ],
+      sigs: [
+        '[rúbrica] Seuastianus, episcopus cuzquensis',
+        'Ante mí, Gómez / de Baeza, escriuano [rúbrica]',
+        '[MARGEN IZQUIERDO:] Derechos 4 escudos [?] ds. [?]',
+      ]
+    }
+  ],
+
+  en: [
+    {
+      heading: 'Folio 1 — 182r',
+      lines: [
+        [1,  'Let all who see this document know'],
+        [2,  'that I, don Sebastián de Lartaún,'],
+        [3,  'presbyter and bishop of the city of Cusco'],
+        [4,  'of this kingdom of Peru, by divine'],
+        [5,  'mercy, presently residing'],
+        [6,  'in this court and city of the Kings,'],
+        [7,  'grant and acknowledge by this present'],
+        [8,  'document that I give and grant all my power,'],
+        [9,  'full, free, complete, and sufficient,'],
+        [10, 'as much as is required by law and as much'],
+        [11, 'as may and should be valid, to the honored'],
+        [12, 'Cristóval de Molina and Francisco Ca-'],
+        [13, 'rrasco, secular priests, resident'],
+        [14, 'in the said city, and to each one'],
+        [15, 'and any of them severally — in solidum —'],
+        [16, 'and such that what one begins'],
+        [17, 'the other may finish and complete,'],
+        [18, 'generally for all'],
+        [19, 'my suits, causes, and matters'],
+        [20, 'civil and criminal, ecclesiasti-'],
+        [21, 'cal and secular, current and'],
+        [22, 'forthcoming, that I have in this city'],
+        [23, 'and kingdom, and expect to have and hold'],
+        [24, 'with any persons, of whatever'],
+        [25, 'estate and condition they may be,'],
+        [26, 'and the said persons against me or my property,'],
+        [27, 'in whatever manner and for what-'],
+        [28, 'ever cause and reason it may be,'],
+        [29, 'as plaintiff and as defendant, and in'],
+        [30, 'reason thereof, and of any other'],
+        [31, 'matters and cases that may concern'],
+        [32, 'me and be necessary, they may'],
+        [33, 'appear and do appear before the'],
+        [34, 'lords of the Holy Council'],
+        [35, 'that is held in this city and court,'],
+        [36, 'and before his royal majesty and before the lords'],
+        [37, 'of his royal audiencia, alcaldes of'],
+        [38, 'court, and before other justices'],
+        [39, 'and ecclesiastical and secular judges who may'],
+        [40, 'have jurisdiction over the said'],
+        [41, 'suits and causes, both before those'],
+        [42, 'of this city and before the others'],
+      ]
+    },
+    {
+      heading: 'Folio 2 — 182v',
+      lines: [
+        [1,  'of the kingdoms and dominions of his majesty,'],
+        [2,  'and before them and any of them they may'],
+        [3,  'petition and demand, respond, deny,'],
+        [4,  'acknowledge, require, summon, pro-'],
+        [5,  'test, file complaints, accuse, bring suit,'],
+        [6,  'and countersue, submit testimony or testimonies,'],
+        [7,  'and carry out executions, arrests, sales,'],
+        [8,  'and auctions of property, and take'],
+        [9,  'possession thereof, and swear any'],
+        [10, 'oaths of calumny and decisory oaths,'],
+        [11, 'telling the truth and requiring the'],
+        [12, 'opposing parties to do the same, putting'],
+        [13, 'forward for them articles and depositions, and'],
+        [14, 'requesting admission to proof within the ordinary'],
+        [15, 'and overseas time limits and others that'],
+        [16, 'may suit me, and to contest the petitions'],
+        [17, 'of the opposing party and present witnesses'],
+        [18, 'and evidence and documents and petitions'],
+        [19, 'and testimonies, extracting them from whoever'],
+        [20, 'may hold them, and to certify, challenge, and'],
+        [21, 'contest the opposing party\'s evidence, both in'],
+        [22, 'matters of fact and of persons, and request publication'],
+        [23, 'thereof, and conclude [struck], challenge judges'],
+        [24, 'and notaries and rapporteurs, and others who may'],
+        [25, 'be appropriate, and have them recuse themselves when'],
+        [26, 'necessary. And to conclude and close arguments,'],
+        [27, 'and to request and hear sentence or sen-'],
+        [28, 'tences, both interlocutory and definitive,'],
+        [29, 'and to accept those that are in my'],
+        [30, 'favor, and to appeal and petition'],
+        [31, 'against those contrary to my right'],
+        [32, 'and justice, and to pursue them in all'],
+        [33, 'degrees and instances, and they may obtain'],
+        [34, 'and request any provisions,'],
+        [35, 'orders, letters, and censures,'],
+        [36, 'and the others that may suit me,'],
+        [37, 'and have them communicated and notified'],
+        [38, 'to the opposing parties against whom'],
+        [39, 'they are issued, and to contest those'],
+        [40, 'requested by the opposing parties, and in regard to all of this,'],
+        [41, 'and all else contained'],
+        [42, 'in this power of attorney and annexed and'],
+        [43, 'pertaining thereto, they may do and shall do'],
+        [44, 'all other acts and proceed-'],
+        [45, 'ings, judicial and extrajudicial,'],
+      ]
+    },
+    {
+      heading: 'Folio 3 — 183r',
+      lines: [
+        [1,  'that may be necessary, and that I would do'],
+        [2,  'and could do if present, even though'],
+        [3,  'they are not specifically named here, for'],
+        [4,  'all of which I give them the said power'],
+        [5,  'with all its incidents,'],
+        [6,  'dependencies, annexations,'],
+        [7,  'and connections, and with free and general'],
+        [8,  'administration, and with authority'],
+        [9,  'to substitute it'],
+        [10, 'in one attorney, or two,'],
+        [11, 'or more, and to revoke them and ap-'],
+        [12, 'point others anew,'],
+        [13, 'as many times as they'],
+        [14, 'may wish; all of whom and'],
+        [15, 'them I relieve according to'],
+        [16, 'the form of law, and under the'],
+        [17, 'clause thereof. In witness'],
+        [18, 'whereof I executed this before'],
+        [19, 'the notary of his majesty and the witnesses'],
+        [20, 'undersigned, and to have'],
+        [21, 'all of it held as firm I pledge'],
+        [22, 'my spiritual and'],
+        [23, 'temporal goods, present and future.'],
+        [24, 'Done in the city of the Kings of'],
+        [25, 'Peru, on the twenty-fourth day of the month'],
+        [26, 'of September of one thousand five hundred and eight-'],
+        [27, 'y-two, and his lordship as grantor'],
+        [28, 'signed it, of whom I certify my acquaintance,'],
+        [29, 'with the following witnesses present: Pero'],
+        [30, 'López and Pero de Góngora and Pero Gonzales de'],
+        [31, 'Herrera. Registered this year, day, month. Corrected: eccle-'],
+        [32, 'siastical, valid; struck: conclude, not valid.'],
+      ],
+      sigs: [
+        '[rubric] Sebastianus, Bishop of Cusco',
+        'Before me, Gómez de Baeza, notary [rubric]',
+        '[LEFT MARGIN:] Fees: 4 escudos [?] ducats [?]',
+      ]
+    }
+  ]
+};
+
+const editorialNote = `
+<div class="editorial-note">
+  <strong>Transcription conventions:</strong>
+  Tildes (~) mark abbreviation marks in the manuscript.
+  Bracketed text supplies expansions of abbreviations or editorial clarifications.
+  [tachado] = scribal deletion in the original.
+  [rúbrica] = handwritten flourish/signature mark.
+</div>
+<div class="editorial-note">
+  <strong>On the date:</strong>
+  The document is unambiguous: folio 3, lines 24–27 state explicitly
+  <em>"veynte e quatro días del mes de setienbre de mill e quinientos e ochenta e dos años"</em>
+  — September 24, <strong>1582</strong>.
+  The document has occasionally been cited as 1583 in secondary literature,
+  likely due to confusion with the opening year of the Third Council of Lima.
+  The manuscript admits no such reading.
+</div>
+<div class="editorial-note">
+  <strong>Significance:</strong>
+  This document establishes that Cristóbal de Molina's relationship with
+  Bishop Lartaún extended well beyond the composition of the
+  <em>Account of the Fables and Rites of the Incas</em> (ca. 1575).
+  Molina served as the bishop's legal agent with authority to act
+  <em>in solidum</em> across all pending and future legal business in the viceroyalty.
+  The document is transcribed and translated in Appendix B of Liliana Socorro Naranjo,
+  <em>The Account of the Fables and Rites of the Incas: Negotiated Translation,
+  Indigenous Epistemologies, and Women's Sacred Authority in Cristóbal de Molina's Relación</em>
+  (University of Alabama Press, forthcoming).
+</div>
+<div class="editorial-note">
+  <strong>Archive:</strong>
+  Archivo General de la Nación, Perú, Protocolos Notariales s. XVI, 43, ff. 182–183.
+  Images provided by the author from a formal reproduction request to the AGN.
+</div>`;
+
+// ─── STATE ───────────────────────────────────────────────────────────────────
+
+let currentFolio = 0;
+let currentLang = 'es';
+let zoomed = false;
+
+// ─── INIT ────────────────────────────────────────────────────────────────────
+
+function init() {
+  goTo(0, document.querySelector('.folio-tab'));
+  switchLang('es');
+  document.addEventListener('keydown', e => {
+    if (e.key === 'ArrowLeft') navigate(-1);
+    if (e.key === 'ArrowRight') navigate(1);
+  });
+}
+
+// ─── NAVIGATION ──────────────────────────────────────────────────────────────
+
+function goTo(idx, btn) {
+  currentFolio = idx;
+  // update tabs
+  document.querySelectorAll('.folio-tab').forEach((t, i) => {
+    t.classList.toggle('active', i === idx);
+  });
+  // update image
+  const f = folios[idx];
+  const img = document.getElementById('msImage');
+  const area = document.getElementById('imageArea');
+  if (f.file) {
+    img.src = f.file;
+    img.style.display = '';
+    area.style.cursor = 'zoom-in';
+  } else {
+    img.src = '';
+    img.style.display = 'none';
+    area.style.cursor = 'default';
+  }
+  document.getElementById('folioLabel').textContent = f.label;
+  // update text
+  renderText();
+  // reset zoom
+  if (zoomed) toggleZoom();
+}
+
+function navigate(dir) {
+  const newIdx = Math.max(0, Math.min(folios.length - 1, currentFolio + dir));
+  goTo(newIdx, null);
+}
+
+// ─── LANGUAGE / TEXT ─────────────────────────────────────────────────────────
+
+function switchLang(lang) {
+  currentLang = lang;
+  document.getElementById('tabES').classList.toggle('active', lang === 'es');
+  document.getElementById('tabEN').classList.toggle('active', lang === 'en');
+  document.getElementById('tabNote').classList.toggle('active', lang === 'note');
+  renderText();
+}
+
+function renderText() {
+  const body = document.getElementById('textBody');
+
+  if (currentLang === 'note') {
+    body.innerHTML = editorialNote;
+    return;
+  }
+
+  if (currentFolio === 3) {
+    // About page
+    body.innerHTML = editorialNote;
+    return;
+  }
+
+  const langData = data[currentLang];
+  const folio = langData[currentFolio];
+  const cls = currentLang === 'es' ? 'es' : 'en';
+
+  let html = `<div class="folio-heading">${folio.heading}</div>`;
+  folio.lines.forEach(([n, text]) => {
+    html += `<div class="line">
+      <span class="line-num">${String(n).padStart(2,'0')}</span>
+      <span class="line-text ${cls}">${text}</span>
+    </div>`;
+  });
+
+  if (folio.sigs) {
+    html += `<div class="sig-block">`;
+    folio.sigs.forEach(s => {
+      html += `<div class="sig-line"><span>${s}</span></div>`;
+    });
+    html += `</div>`;
+  }
+
+  body.innerHTML = html;
+  body.scrollTop = 0;
+}
+
+// ─── IMAGE CONTROLS ──────────────────────────────────────────────────────────
+
+function applyFilters() {
+  const contrast = document.getElementById('contrast').value;
+  const brightness = document.getElementById('brightness').value;
+  const sharpen = parseFloat(document.getElementById('sharpen').value);
+  const img = document.getElementById('msImage');
+  let f = `contrast(${contrast}%) brightness(${brightness}%)`;
+  if (sharpen > 0) f += ` blur(0px)`;
+  img.style.filter = f;
+  img.style.imageRendering = sharpen > 0 ? 'crisp-edges' : 'auto';
+}
+
+function setPreset(name, btn) {
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  const c = document.getElementById('contrast');
+  const b2 = document.getElementById('brightness');
+  const s = document.getElementById('sharpen');
+  const presets = {
+    original: [100, 100, 0],
+    warm:     [110, 105, 0],
+    crisp:    [140, 95,  2],
+    gray:     [120, 90,  0],
+  };
+  const [cv, bv, sv] = presets[name];
+  c.value = cv; b2.value = bv; s.value = sv;
+  const img = document.getElementById('msImage');
+  if (name === 'gray') {
+    img.style.filter = `grayscale(1) contrast(${cv}%) brightness(${bv}%)`;
+  } else {
+    applyFilters();
+    if (name === 'warm') {
+      img.style.filter += ' sepia(0.15)';
+    }
+  }
+}
+
+function toggleZoom() {
+  const area = document.getElementById('imageArea');
+  zoomed = !zoomed;
+  area.classList.toggle('zoomed', zoomed);
+  area.style.cursor = zoomed ? 'zoom-out' : 'zoom-in';
+}
+
+// ─── START ───────────────────────────────────────────────────────────────────
+window.onload = init;
+</script>
+</body>
+</html>
