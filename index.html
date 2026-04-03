@@ -8,15 +8,15 @@
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     :root {
-      --bg: #1a1a1a;
-      --surface: #242424;
-      --surface2: #2e2e2e;
-      --border: #3a3a3a;
-      --accent: #c8a96e;
-      --accent2: #a07840;
-      --text: #e8e0d0;
-      --text-muted: #888;
-      --text-dim: #666;
+      --bg: #f5f0e8;
+      --surface: #ede8dc;
+      --surface2: #e4ddd0;
+      --border: #c8bfa8;
+      --accent: #7a5c2e;
+      --accent2: #5e4420;
+      --text: #2c2416;
+      --text-muted: #6b5a3e;
+      --text-dim: #9a8a72;
       --radius: 6px;
     }
 
@@ -151,7 +151,7 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      background: #111;
+      background: #ddd8cc;
       cursor: zoom-in;
     }
     .image-area.zoomed { cursor: zoom-out; overflow: auto; }
@@ -248,7 +248,7 @@
       margin-bottom: 0.15rem;
       padding: 0.1rem 0;
     }
-    .line:hover { background: rgba(200,169,110,0.06); border-radius: 3px; }
+    .line:hover { background: rgba(122,92,46,0.08); border-radius: 3px; }
     .line-num {
       color: var(--accent2);
       font-size: 0.7rem;
@@ -258,8 +258,8 @@
       user-select: none;
     }
     .line-text { color: var(--text); }
-    .line-text.es { font-style: italic; color: #d4c8a8; }
-    .line-text.en { color: #b8d4b8; }
+    .line-text.es { font-style: italic; color: #3a2c14; }
+    .line-text.en { color: #1e3a1e; }
 
     .sig-block {
       margin-top: 1rem;
@@ -291,7 +291,6 @@
       line-height: 1.6;
     }
     .editorial-note strong { color: var(--accent); }
-
     /* FOOTER */
     footer {
       background: var(--surface);
@@ -389,9 +388,9 @@
 // ─── DATA ───────────────────────────────────────────────────────────────────
 
 const folios = [
-  { label: 'f. 182r', file: '182.JPG' },
-  { label: 'f. 182v', file: '182V.jpg' },
-  { label: 'f. 183r', file: '183.jpg' },
+  { label: 'f. 182r', file: '../182.jpg' },
+  { label: 'f. 182v', file: '../182V. jpg' },
+  { label: 'f. 183r', file: '../183.jpg' },
   { label: 'about',   file: null },
 ];
 
