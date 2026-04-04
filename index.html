@@ -414,7 +414,7 @@ async function loadManifest() {
       file: m.file,
       fullLabel: m.label,
     }));
-    folios.splice(0, 0, ...entries);
+    folios.splice(0, 3, ...entries);
     // update tabs
     const tabBar = document.querySelector('.folio-tabs');
     tabBar.innerHTML = '';
