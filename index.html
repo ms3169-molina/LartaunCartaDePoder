@@ -154,6 +154,13 @@
       background: #ddd8cc;
       cursor: zoom-in;
     }
+    .img-error {
+      color: var(--text-muted);
+      font-size: 0.8rem;
+      text-align: center;
+      padding: 2rem;
+      display: none;
+    }
     .image-area.zoomed { cursor: zoom-out; overflow: auto; }
     .ms-image {
       max-width: 100%;
@@ -354,7 +361,9 @@
     </div>
 
     <div class="image-area" id="imageArea" onclick="toggleZoom()">
-      <img class="ms-image" id="msImage" src="" alt="Manuscript folio" />
+      <img class="ms-image" id="msImage" src="" alt="Manuscript folio"
+           onerror="document.getElementById('imgError').style.display='block'; document.getElementById('imgError').textContent='Image not found: ' + this.src;" />
+      <div class="img-error" id="imgError"></div>
     </div>
 
     <div class="folio-tabs">
@@ -388,11 +397,53 @@
 // ─── DATA ───────────────────────────────────────────────────────────────────
 
 const folios = [
-  { label: 'f. 182r', file: '../182.jpg' },
-  { label: 'f. 182v', file: '../182V. jpg' },
-  { label: 'f. 183r', file: '../183.jpg' },
-  { label: 'about',   file: null },
+  { label: 'about', file: null },
 ];
+let manifestLoaded = false;
+
+async function loadManifest() {
+  try {
+    const res = await fetch('manifest.json');
+    const manifest = await res.json();
+    // prepend manifest entries, keep 'about' at end
+    const entries = manifest.map(m => ({
+      label: m.label.split(' \u2014 ')[0], // e.g. "f. 182r"
+      file: m.file,
+      fullLabel: m.label,
+    }));
+    folios.splice(0, 0, ...entries);
+    // update tabs
+    const tabBar = document.querySelector('.folio-tabs');
+    tabBar.innerHTML = '';
+    folios.forEach((f, i) => {
+      const btn = document.createElement('button');
+      btn.className = 'folio-tab' + (i === 0 ? ' active' : '');
+      btn.textContent = f.label === 'about' ? 'About' : f.label;
+      btn.onclick = () => goTo(i, btn);
+      tabBar.appendChild(btn);
+    });
+    manifestLoaded = true;
+    goTo(0, tabBar.children[0]);
+  } catch(e) {
+    // fallback to hardcoded if manifest fails
+    console.warn('manifest.json not found, using hardcoded filenames');
+    folios.splice(0, 0,
+      { label: 'f. 182r', file: '182.jpg', fullLabel: 'f. 182r \u2014 Opening' },
+      { label: 'f. 182v', file: '182V. jpg', fullLabel: 'f. 182v \u2014 Continuation' },
+      { label: 'f. 183r', file: '183.jpg', fullLabel: 'f. 183r \u2014 Date and signatures' },
+    );
+    const tabBar = document.querySelector('.folio-tabs');
+    tabBar.innerHTML = '';
+    folios.forEach((f, i) => {
+      const btn = document.createElement('button');
+      btn.className = 'folio-tab' + (i === 0 ? ' active' : '');
+      btn.textContent = f.label === 'about' ? 'About' : f.label;
+      btn.onclick = () => goTo(i, btn);
+      tabBar.appendChild(btn);
+    });
+    goTo(0, tabBar.children[0]);
+  }
+}
 
 const data = {
   es: [
@@ -727,8 +778,7 @@ let zoomed = false;
 // ─── INIT ────────────────────────────────────────────────────────────────────
 
 function init() {
-  goTo(0, document.querySelector('.folio-tab'));
-  switchLang('es');
+  loadManifest();
   document.addEventListener('keydown', e => {
     if (e.key === 'ArrowLeft') navigate(-1);
     if (e.key === 'ArrowRight') navigate(1);
@@ -747,6 +797,8 @@ function goTo(idx, btn) {
   const f = folios[idx];
   const img = document.getElementById('msImage');
   const area = document.getElementById('imageArea');
+  const errDiv = document.getElementById('imgError');
+  errDiv.style.display = 'none';
   if (f.file) {
     img.src = f.file;
     img.style.display = '';
