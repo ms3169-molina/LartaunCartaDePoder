@@ -397,13 +397,16 @@
 // ─── DATA ───────────────────────────────────────────────────────────────────
 
 const folios = [
-  { label: 'about', file: null },
+  { label: 'f. 182r', file: '182.jpg', fullLabel: 'f. 182r \u2014 Lartaún grants power to Molina and Carrasco' },
+  { label: 'f. 182v', file: '182v.jpg', fullLabel: 'f. 182v \u2014 Scope of legal authority' },
+  { label: 'f. 183r', file: '183.jpg', fullLabel: 'f. 183r \u2014 Date, witnesses, signatures' },
+  { label: 'about',   file: null },
 ];
 let manifestLoaded = false;
 
 async function loadManifest() {
   try {
-    const res = await fetch('manifest.json');
+    const res = await fetch('lartaun_manifest.json');
     const manifest = await res.json();
     // prepend manifest entries, keep 'about' at end
     const entries = manifest.map(m => ({
@@ -429,7 +432,7 @@ async function loadManifest() {
     console.warn('manifest.json not found, using hardcoded filenames');
     folios.splice(0, 0,
       { label: 'f. 182r', file: '182.jpg', fullLabel: 'f. 182r \u2014 Opening' },
-      { label: 'f. 182v', file: '182V. jpg', fullLabel: 'f. 182v \u2014 Continuation' },
+      { label: 'f. 182v', file: '182v.jpg', fullLabel: 'f. 182v \u2014 Continuation' },
       { label: 'f. 183r', file: '183.jpg', fullLabel: 'f. 183r \u2014 Date and signatures' },
     );
     const tabBar = document.querySelector('.folio-tabs');
